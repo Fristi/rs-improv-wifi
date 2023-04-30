@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-enum Error {
+pub enum Error {
     None = 0x00,
     InvalidRpc = 0x01,
     UnknownRpc = 0x02,
@@ -8,7 +8,7 @@ enum Error {
     Unknown = 0xff
 }
 
-enum State {
+pub enum State {
     Stopped = 0x00,
     AwaitingAuthorization = 0x01,
     Authorized = 0x02,
@@ -38,7 +38,7 @@ impl TryFrom<u8> for CommandIdentifier {
 }
 
 #[derive(Debug, PartialEq)]
-enum ImprovCommand {
+pub enum ImprovCommand {
     WifiSettings { ssid: String, password: String },
     GetCurrentState,
     GetDeviceInfo,
@@ -48,7 +48,7 @@ enum ImprovCommand {
 impl ImprovCommand {
 
 
-    fn from_bytes(data: &[u8]) -> Result<ImprovCommand, Error> {
+    pub fn from_bytes(data: &[u8]) -> Result<ImprovCommand, Error> {
         let cmd = CommandIdentifier::try_from(data[0])?;
 
         match cmd {

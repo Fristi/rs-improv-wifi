@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 enum Error {
     None = 0x00,
     InvalidRpc = 0x01,
@@ -36,6 +37,7 @@ impl TryFrom<u8> for CommandIdentifier {
     }
 }
 
+#[derive(Debug, PartialEq)]
 enum ImprovCommand {
     WifiSettings { ssid: String, password: String },
     GetCurrentState,
@@ -51,16 +53,16 @@ impl ImprovCommand {
 
         match cmd {
             CommandIdentifier::WifiSettings => {
-                let ssid_length = data[2];
+                let ssid_length = data[2] as usize;
                 let ssid_start = 3;
-                let ssid_end = ssid_start + ssid_length;
+                let ssid_end= ssid_start + ssid_length;
 
-                let pass_length = data[ssid_end];
+                let pass_length = data[ssid_end] as usize;
                 let pass_start = ssid_end + 1;
                 let pass_end = pass_start + pass_length;
 
-                let ssid = String::from_utf8(data[ssid_start..ssid_end]).map_err(|_| Error::Unknown)?;
-                let password = String::from_utf8(data[pass_start..pass_end]).map_err(|_| Error::Unknown)?;
+                let ssid = String::from_utf8_lossy(&data[ssid_start..ssid_end]).parse().map_err(|_| Error::Unknown)?;
+                let password = String::from_utf8_lossy(&data[pass_start..pass_end]).parse().map_err(|_| Error::Unknown)?;
 
                 Ok(ImprovCommand::WifiSettings { ssid, password })
             },
@@ -77,6 +79,10 @@ mod tests {
 
     #[test]
     fn it_works() {
-        assert_eq!(true, true);
+
+
+        let bytes: [u8; 32] = [0x01, 0x1e, 0x0c, 0x4d,0x79,0x57,0x69,0x72,0x65,0x6c,0x65,0x73,0x73,0x41,0x50, 0x10, 0x6d,0x79,0x73,0x65,0x63,0x75,0x72,0x65,0x70,0x61,0x73,0x73,0x77,0x6f,0x72,0x64];
+
+        assert_eq!(ImprovCommand::from_bytes(&bytes), Ok(ImprovCommand::WifiSettings { ssid: String::from("MyWirelessAP"), password: String::from("mysecurepassword")}))
     }
 }

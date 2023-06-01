@@ -1,3 +1,5 @@
+use heapless::String;
+
 #[derive(Debug, PartialEq)]
 pub enum Error {
     None = 0x00,
@@ -39,7 +41,7 @@ impl TryFrom<u8> for CommandIdentifier {
 
 #[derive(Debug, PartialEq)]
 pub enum ImprovCommand {
-    WifiSettings { ssid: String, password: String },
+    WifiSettings { ssid: String<255>, password: String<255> },
     GetCurrentState,
     GetDeviceInfo,
     GetWifiNetworks
@@ -61,8 +63,8 @@ impl ImprovCommand {
                 let pass_start = ssid_end + 1;
                 let pass_end = pass_start + pass_length;
 
-                let ssid = String::from_utf8_lossy(&data[ssid_start..ssid_end]).parse().map_err(|_| Error::Unknown)?;
-                let password = String::from_utf8_lossy(&data[pass_start..pass_end]).parse().map_err(|_| Error::Unknown)?;
+                let ssid = core::str::from_utf8(&data[ssid_start..ssid_end]).map(|x| String::from(x)).map_err(|_| Error::Unknown)?;
+                let password = core::str::from_utf8(&data[pass_start..pass_end]).map(|x| String::from(x)).map_err(|_| Error::Unknown)?;
 
                 Ok(ImprovCommand::WifiSettings { ssid, password })
             },
